@@ -1,4 +1,4 @@
-# Uncomment this line to define a global platform for your project
+# Standard Flutter Podfile
 platform :ios, '13.0'
 
 # CocoaPods analytics sends network stats. Disable it by setting
@@ -25,31 +25,31 @@ def flutter_root
   raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Generated.xcconfig, then run flutter pub get"
 end
 
-require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'xcode_backend.rb'), flutter_root) rescue nil # For older versions
-require_relative 'Flutter/podhelper.rb'
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper.rb'), flutter_root)
 
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-  target 'RunnerTests' do
-    inherit! :search_paths
-  end
 end
 
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+    
     target.build_configurations.each do |config|
-      # Minimum deployment target 13.0
+      # Modernize to iOS 13.0
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
       
-      # Fix for architectures
+      # Architecture and performance fixes
       config.build_settings['ONLY_ACTIVE_ARCH'] = 'NO'
-      
-      # Fix for bitcode (deprecated but still causes issues if enabled in some contexts)
       config.build_settings['ENABLE_BITCODE'] = 'NO'
+      
+      # Remove any old flags if present
+      if config.build_settings['OTHER_LDFLAGS']
+        config.build_settings['OTHER_LDFLAGS'].delete('-G') rescue nil
+      end
     end
   end
 end
