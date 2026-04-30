@@ -19,7 +19,6 @@
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
-    
-    <style name="Theme.AppCompat.Light.NoActionBar.UCrop" parent="Theme.AppCompat.Light.NoActionBar" />
-    <style name="AppBaseTheme" parent="Theme.AppCompat.Light.NoActionBar" />
+    <style name="Theme.AppCompat.Light.NoActionBar.UCrop" parent="Theme.AppCompat.Light.NoActionBar"/>
+    <style name="AppBaseTheme" parent="Theme.AppCompat.Light.NoActionBar"/>
 </resources>
