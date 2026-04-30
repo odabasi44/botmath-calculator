@@ -1,5 +1,7 @@
 platform :ios, '13.0'
 
+install! 'cocoapods', :deterministic_uuids => false
+
 require_relative 'Flutter/podhelper.rb'
 
 project 'Runner', {
@@ -19,8 +21,11 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
     target.build_configurations.each do |config|
-      # Modernize to iOS 13.0
+      # Modernize to iOS 13.0 for all pods
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+      
+      # Architecture and performance fixes for Xcode 15/16
+      config.build_settings['ONLY_ACTIVE_ARCH'] = 'NO'
       config.build_settings['ENABLE_BITCODE'] = 'NO'
     end
   end
