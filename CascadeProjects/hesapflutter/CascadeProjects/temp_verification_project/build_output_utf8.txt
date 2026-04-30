@@ -1,0 +1,58 @@
+﻿Running Gradle task 'bundleRelease'...                          
+flutter : 
+At line:1 char:1
++ flutter build appbund
+le > build_output.txt 2
+>&1
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (:String) [],    
+ RemoteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+FAILURE: Build failed w
+ith an exception.
+
+* What went wrong:
+Execution failed for ta
+sk ':app:signReleaseBun
+dle'.
+> A failure occurred wh
+ile executing com.andro
+id.build.gradle.interna
+l.tasks.FinalizeBundleT
+ask$BundleToolRunnable
+   > Failed to read key
+ upload from store "C:\
+Users\Ls-4\Desktop\mobi
+l_uygulamalar\CascadePr
+ojects\hesapmakinasi2\C
+ascadeProjects\hesapflu
+tter\CascadeProjects\te
+mp_verification_project
+\android\app\upload-key
+store.jks": keystore pa
+ssword was incorrect
+
+* Try:
+> Run with --stacktrace
+ option to get the stac
+k trace.
+> Run with --info or --
+debug option to get mor
+e log output.
+> Run with --scan to ge
+t full insights.
+> Get more help at http
+s://help.gradle.org.
+
+BUILD FAILED in 6s
+Running Gradle task 'bundleRelease'...                              7,5s
+Gradle task bundleRelea
+se failed with exit cod
+e 1

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "854976838323",
+    "project_id": "revenuecat-anahtar",
+    "storage_bucket": "revenuecat-anahtar.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:854976838323:android:31da6f098a92997ab54ec6",
+        "android_client_info": {
+          "package_name": "com.botlab.calculator"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvxkKWZ0UgFndTxCJd51fhrnGcvpiVQnc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
