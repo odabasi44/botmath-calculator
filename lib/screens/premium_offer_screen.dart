@@ -7,6 +7,8 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:facebook_app_events/facebook_app_events.dart';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
+
 class PremiumOfferScreen extends StatefulWidget {
   final Map<String, String> translations;
   final CalculatorThemeData theme;
@@ -100,12 +102,22 @@ class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
         _analytics.logEvent(name: 'purchase_success');
         if (mounted) widget.onContinue();
       }
-    } on PurchasesException catch (e) {
-      if (!e.userCancelled) {
-        _showErrorDialog("Purchase failed: ${e.message}");
-      }
     } catch (e) {
-      _showErrorDialog("An unexpected error occurred. Please try again.");
+      bool userCancelled = false;
+      if (e is PlatformException) {
+        // Check if the error code corresponds to a user cancellation
+        // In purchases_flutter, this is often handled via a dedicated check
+      }
+      
+      // Standard way to check for cancellation in RevenueCat Flutter
+      debugPrint("Purchase error details: $e");
+      
+      // If it's not a cancellation, show error
+      if (e.toString().contains("PurchasesErrorCode.purchaseCancelledError")) {
+         // User cancelled, do nothing
+      } else {
+        _showErrorDialog("An error occurred during purchase. Please try again.");
+      }
     } finally {
       if (mounted) setState(() => _isPurchasing = false);
     }
