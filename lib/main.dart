@@ -31,6 +31,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:facebook_app_events/facebook_app_events.dart';
 import 'firebase_options.dart';
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 
 class AppTranslations {
   static const Map<String, Map<String, String>> all = {
@@ -1408,6 +1409,9 @@ void main() async {
     }
   }
   
+  // RevenueCat Debugging
+  await Purchases.setLogLevel(LogLevel.debug);
+  
   if (Platform.isAndroid) {
     PurchasesConfiguration configuration = PurchasesConfiguration("goog_pYMPiDyqDdQmvwVWiKWoQLjpPUs");
     await Purchases.configure(configuration);
@@ -1625,10 +1629,26 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   Future<void> _initApp() async {
     await _loadAppVersion();
     await _loadSettings();
+    await _initTracking(); // iOS Tracking Permission
     await _refreshPremiumStatus();
     _checkVersionAndShowDialog();
     _loadRewardedAd();
     _loadInterstitialAd();
+  }
+
+  Future<void> _initTracking() async {
+    if (!Platform.isIOS) return;
+    
+    try {
+      final status = await AppTrackingTransparency.trackingAuthorizationStatus;
+      if (status == TrackingStatus.notDetermined) {
+        // Wait a bit to ensure the app is fully resumed/active
+        await Future.delayed(const Duration(milliseconds: 1000));
+        await AppTrackingTransparency.requestTrackingAuthorization();
+      }
+    } catch (e) {
+      debugPrint("ATT Error: $e");
+    }
   }
 
   Future<void> _checkVersionAndShowDialog() async {

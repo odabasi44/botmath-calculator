@@ -5,6 +5,8 @@ import '../theme/calculator_theme.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:facebook_app_events/facebook_app_events.dart';
+import 'dart:io';
+
 class PremiumOfferScreen extends StatefulWidget {
   final Map<String, String> translations;
   final CalculatorThemeData theme;
@@ -24,81 +26,130 @@ class PremiumOfferScreen extends StatefulWidget {
 }
 
 class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
-  Package? _monthlyPackage;
+  List<Package> _availablePackages = [];
+  Package? _selectedPackage;
   bool _isLoading = true;
+  bool _isPurchasing = false;
+  String? _errorMessage;
+  
   final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
   final FacebookAppEvents _facebookAppEvents = FacebookAppEvents();
+
+  // URLs as per Apple Compliance
+  static const String privacyUrl = "https://www.lisansarsiv.com/gizlilik-politikalarimiz/";
+  static const String termsUrl = "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
 
   @override
   void initState() {
     super.initState();
     _fetchOfferings();
     
-    // Log screen view
     _analytics.logEvent(name: 'premium_offer_viewed');
     _facebookAppEvents.logEvent(name: 'premium_offer_viewed');
   }
 
   Future<void> _fetchOfferings() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
     try {
       Offerings offerings = await Purchases.getOfferings();
-      if (offerings.current != null && offerings.current!.monthly != null) {
+      if (offerings.current != null && offerings.current!.availablePackages.isNotEmpty) {
+        final packages = offerings.current!.availablePackages;
         setState(() {
-          _monthlyPackage = offerings.current!.monthly;
+          _availablePackages = packages;
+          // Default to monthly if available, else first one
+          _selectedPackage = packages.firstWhere(
+            (p) => p.packageType == PackageType.monthly,
+            orElse: () => packages.first,
+          );
           _isLoading = false;
         });
       } else {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+          _errorMessage = "No subscription packages found. Please check your connection.";
+        });
       }
     } catch (e) {
       debugPrint("Error fetching offerings: $e");
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+        _errorMessage = "Unable to load packages. Please try again later.";
+      });
     }
   }
 
   Future<void> _purchase() async {
-    if (_monthlyPackage == null) return;
-    setState(() => _isLoading = true);
-    
-    // Log intent to start trial
-    _analytics.logEvent(name: 'start_trial_clicked');
-    _facebookAppEvents.logEvent(name: 'start_trial_clicked');
+    if (_selectedPackage == null) {
+      _showSnackBar("Please select a package first.");
+      return;
+    }
+
+    setState(() => _isPurchasing = true);
+    _analytics.logEvent(name: 'purchase_attempt', parameters: {'package': _selectedPackage!.identifier});
 
     try {
-      final purchaseResult = await Purchases.purchasePackage(_monthlyPackage!);
+      final purchaseResult = await Purchases.purchasePackage(_selectedPackage!);
       final customerInfo = purchaseResult.customerInfo;
+      
       if (customerInfo.entitlements.active.containsKey('premium') || 
           customerInfo.entitlements.active.containsKey('Premium')) {
-        widget.onContinue();
+        _analytics.logEvent(name: 'purchase_success');
+        if (mounted) widget.onContinue();
+      }
+    } on PurchasesException catch (e) {
+      if (!e.userCancelled) {
+        _showErrorDialog("Purchase failed: ${e.message}");
       }
     } catch (e) {
-      debugPrint("Purchase failed: $e");
+      _showErrorDialog("An unexpected error occurred. Please try again.");
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isPurchasing = false);
     }
   }
 
   Future<void> _restorePurchases() async {
-    setState(() => _isLoading = true);
+    setState(() => _isPurchasing = true);
     try {
       CustomerInfo customerInfo = await Purchases.restorePurchases();
       if (customerInfo.entitlements.active.containsKey('premium') || 
           customerInfo.entitlements.active.containsKey('Premium')) {
-        widget.onContinue();
+        _showSnackBar("Purchases restored successfully!");
+        if (mounted) widget.onContinue();
+      } else {
+        _showSnackBar("No active subscription found to restore.");
       }
     } catch (e) {
-      debugPrint("Restore failed: $e");
+      _showErrorDialog("Restore failed. Please check your account.");
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isPurchasing = false);
     }
+  }
+
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _showErrorDialog(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Notice"),
+        content: Text(message),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("OK")),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final price = _monthlyPackage?.storeProduct.priceString ?? (widget.translations['power'] == 'Üs' ? "49.99 TL" : "\$4.99");
-    final trialInfo = widget.translations['premium_offer_trial_info']?.replaceAll('{0}', price) ?? 
-        "3 days free, then $price/month. Cancel anytime.";
-
     return Scaffold(
       backgroundColor: const Color(0xFF1C1C1E),
       body: Stack(
@@ -117,124 +168,213 @@ class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
           SafeArea(
             child: Column(
               children: [
-                // Top Header with Close Button
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white60, size: 28),
-                        onPressed: widget.onContinue,
-                      ),
-                    ],
-                  ),
-                ),
-
+                _buildHeader(),
                 Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 20),
-                        const Icon(Icons.workspace_premium, color: Colors.amber, size: 80),
-                        const SizedBox(height: 24),
-                        Text(
-                          widget.translations['premium_offer_title'] ?? '3 GÜN ÜCRETSİZ DENE',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          widget.translations['premium_offer_subtitle'] ?? 'Tüm Özelliklerin Kilidini Aç',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 18,
-                          ),
-                        ),
-                        const SizedBox(height: 40),
-                        
-                        // Features List
-                        _buildFeatureRow(Icons.block, widget.translations['ad_free'] ?? 'Reklamsız deneyim'),
-                        _buildFeatureRow(Icons.psychology, widget.translations['ai_solver'] ?? 'AI Çözücü'),
-                        _buildFeatureRow(Icons.palette, widget.translations['custom_themes'] ?? 'Özel temalar'),
-                        _buildFeatureRow(Icons.history, widget.translations['unlimited_history'] ?? 'Sınırsız geçmiş'),
-                        
-                        const SizedBox(height: 60),
-                      ],
-                    ),
-                  ),
+                  child: _isLoading 
+                    ? const Center(child: CircularProgressIndicator(color: Colors.amber))
+                    : _errorMessage != null
+                      ? _buildErrorUI()
+                      : _buildContent(),
                 ),
-
-                // Bottom Action Area
-                Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    children: [
-                      Text(
-                        trialInfo,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.white70, fontSize: 14),
-                      ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _purchase,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.amber,
-                            foregroundColor: Colors.black,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            elevation: 4,
-                          ),
-                          child: _isLoading 
-                            ? const CircularProgressIndicator(color: Colors.black)
-                            : Text(
-                                widget.translations['start_free_trial'] ?? 'ÜCRETSİZ DENEMEYİ BAŞLAT',
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                              ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          TextButton(
-                            onPressed: _restorePurchases,
-                            child: Text(
-                              widget.translations['restore_purchase'] ?? 'Satın Alma Geri Yükle',
-                              style: const TextStyle(color: Colors.white60, fontSize: 12),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        widget.translations['premium_offer_footer'] ?? 'Devam ederek Kullanım Koşulları ve Gizlilik Politikası\'nı kabul etmiş olursunuz.',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.white38, fontSize: 10),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildLink("Terms", "https://botlab.com/terms"),
-                          const Text(" | ", style: TextStyle(color: Colors.white24)),
-                          _buildLink("Privacy", "https://botlab.com/privacy"),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+                if (!_isLoading && _errorMessage == null) _buildFooter(),
               ],
             ),
+          ),
+
+          // Purchasing Overlay
+          if (_isPurchasing)
+            Container(
+              color: Colors.black54,
+              child: const Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(color: Colors.amber),
+                    SizedBox(height: 16),
+                    Text("Processing...", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.close, color: Colors.white60, size: 28),
+            onPressed: _isPurchasing ? null : widget.onContinue,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorUI() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.redAccent, size: 64),
+            const SizedBox(height: 16),
+            Text(
+              _errorMessage!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white70, fontSize: 16),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _fetchOfferings,
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.amber, foregroundColor: Colors.black),
+              child: const Text("Retry"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        children: [
+          const SizedBox(height: 10),
+          const Icon(Icons.workspace_premium, color: Colors.amber, size: 70),
+          const SizedBox(height: 16),
+          Text(
+            widget.translations['premium_offer_title'] ?? 'TRY 3 DAYS FOR FREE',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            widget.translations['premium_offer_subtitle'] ?? 'Unlock All Features',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white70, fontSize: 16),
+          ),
+          const SizedBox(height: 30),
+          
+          _buildFeatureRow(Icons.block, widget.translations['ad_free'] ?? 'Ad-free experience'),
+          _buildFeatureRow(Icons.psychology, widget.translations['ai_solver'] ?? 'AI Solver (Premium)'),
+          _buildFeatureRow(Icons.palette, widget.translations['custom_themes'] ?? 'Custom themes'),
+          _buildFeatureRow(Icons.history, widget.translations['unlimited_history'] ?? 'Unlimited history'),
+          
+          const SizedBox(height: 30),
+          
+          // Package Selection List
+          ..._availablePackages.map((package) => _buildPackageTile(package)),
+          
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPackageTile(Package package) {
+    final isSelected = _selectedPackage?.identifier == package.identifier;
+    String durationLabel = "";
+    switch (package.packageType) {
+      case PackageType.weekly: durationLabel = "Weekly"; break;
+      case PackageType.monthly: durationLabel = "Monthly"; break;
+      case PackageType.annual: durationLabel = "Yearly"; break;
+      default: durationLabel = "Premium";
+    }
+
+    return GestureDetector(
+      onTap: () => setState(() => _selectedPackage = package),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.amber.withOpacity(0.15) : Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? Colors.amber : Colors.white24,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    durationLabel,
+                    style: TextStyle(
+                      color: isSelected ? Colors.amber : Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold
+                    ),
+                  ),
+                  if (package.packageType == PackageType.annual)
+                    const Text("Best Value", style: TextStyle(color: Colors.greenAccent, fontSize: 12)),
+                ],
+              ),
+            ),
+            Text(
+              package.storeProduct.priceString,
+              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFooter() {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: (_isPurchasing || _selectedPackage == null) ? null : _purchase,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.amber,
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 4,
+              ),
+              child: Text(
+                widget.translations['start_free_trial'] ?? 'START FREE TRIAL',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: _isPurchasing ? null : _restorePurchases,
+            child: Text(
+              widget.translations['restore_purchase'] ?? 'Restore Purchase',
+              style: const TextStyle(color: Colors.white60, fontSize: 12),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            widget.translations['premium_offer_footer'] ?? 'By continuing, you agree to our Terms and Privacy Policy.',
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white38, fontSize: 10),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildLink("Terms of Use", termsUrl),
+              const Text(" | ", style: TextStyle(color: Colors.white24)),
+              _buildLink("Privacy Policy", privacyUrl),
+            ],
           ),
         ],
       ),
@@ -243,22 +383,15 @@ class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
 
   Widget _buildFeatureRow(IconData icon, String text) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: Colors.amber, size: 20),
-          ),
-          const SizedBox(width: 16),
+          Icon(icon, color: Colors.amber, size: 20),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+              style: const TextStyle(color: Colors.white, fontSize: 15),
             ),
           ),
         ],
@@ -268,10 +401,15 @@ class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
 
   Widget _buildLink(String text, String url) {
     return InkWell(
-      onTap: () => launchUrl(Uri.parse(url)),
+      onTap: () async {
+        final uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      },
       child: Text(
         text,
-        style: const TextStyle(color: Colors.white54, fontSize: 10, decoration: TextDecoration.underline),
+        style: const TextStyle(color: Colors.white54, fontSize: 11, decoration: TextDecoration.underline),
       ),
     );
   }
