@@ -222,7 +222,7 @@ class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
                       ? _buildErrorUI()
                       : _buildContent(),
                 ),
-                if (!_isLoading && _errorMessage == null) _buildFooter(),
+                if (!_isLoading && _errorMessage == null) _buildFixedFooter(),
               ],
             ),
           ),
@@ -236,7 +236,7 @@ class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     CircularProgressIndicator(color: Colors.amber),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     Text("Processing...", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ],
                 ),
@@ -249,19 +249,18 @@ class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           IconButton(
-            icon: const Icon(Icons.close, color: Colors.white60, size: 28),
+            icon: const Icon(Icons.close, color: Colors.white60, size: 24),
             onPressed: _isPurchasing ? null : widget.onContinue,
           ),
         ],
       ),
     );
   }
-
   Widget _buildErrorUI() {
     return Center(
       child: Padding(
@@ -288,37 +287,61 @@ class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
     );
   }
 
+
   Widget _buildContent() {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         children: [
-          const SizedBox(height: 10),
-          const Icon(Icons.workspace_premium, color: Colors.amber, size: 70),
-          const SizedBox(height: 16),
+          const Icon(Icons.workspace_premium, color: Colors.amber, size: 48),
+          const SizedBox(height: 12),
           Text(
             widget.translations['premium_offer_title'] ?? 'TRY 3 DAYS FOR FREE',
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Text(
             widget.translations['premium_offer_subtitle'] ?? 'Unlock All Features',
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white70, fontSize: 16),
+            style: const TextStyle(color: Colors.white70, fontSize: 14),
           ),
-          const SizedBox(height: 30),
+          const SizedBox(height: 20),
           
           _buildFeatureRow(Icons.block, widget.translations['ad_free'] ?? 'Ad-free experience'),
           _buildFeatureRow(Icons.psychology, widget.translations['ai_solver'] ?? 'AI Solver (Premium)'),
           _buildFeatureRow(Icons.palette, widget.translations['custom_themes'] ?? 'Custom themes'),
           _buildFeatureRow(Icons.history, widget.translations['unlimited_history'] ?? 'Unlimited history'),
           
-          const SizedBox(height: 30),
+          const SizedBox(height: 20),
           
           // Package Selection List
           ..._availablePackages.map((package) => _buildPackageTile(package)),
           
+          const SizedBox(height: 20),
+          
+          // Apple Compliance: Subscription Disclosure (Moved inside scroll)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              widget.translations['premium_disclosure'] ?? '',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white38, fontSize: 10, height: 1.4),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildLink("Terms of Use", termsUrl),
+              const Text(" | ", style: TextStyle(color: Colors.white24)),
+              _buildLink("Privacy Policy", privacyUrl),
+            ],
+          ),
           const SizedBox(height: 20),
         ],
       ),
@@ -338,11 +361,11 @@ class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
     return GestureDetector(
       onTap: () => setState(() => _selectedPackage = package),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected ? Colors.amber.withOpacity(0.15) : Colors.white.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? Colors.amber : Colors.white24,
             width: isSelected ? 2 : 1,
@@ -358,18 +381,18 @@ class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
                     durationLabel,
                     style: TextStyle(
                       color: isSelected ? Colors.amber : Colors.white,
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold
                     ),
                   ),
                   if (package.packageType == PackageType.annual)
-                    const Text("Best Value", style: TextStyle(color: Colors.greenAccent, fontSize: 12)),
+                    const Text("Best Value", style: TextStyle(color: Colors.greenAccent, fontSize: 11)),
                 ],
               ),
             ),
             Text(
               package.storeProduct.priceString,
-              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -377,79 +400,62 @@ class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
     );
   }
 
-  Widget _buildFooter() {
+  Widget _buildFixedFooter() {
     String trialText = "";
     if (_selectedPackage != null) {
       trialText = widget.translations['premium_offer_trial_info'] ?? '3 days free, then {0}. Cancel anytime.';
       trialText = trialText.replaceAll('{0}', _selectedPackage!.storeProduct.priceString);
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C1C1E),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           if (_selectedPackage != null)
             Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: 8),
               child: Text(
                 trialText,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.amber, fontSize: 13, fontWeight: FontWeight.w500),
+                style: const TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.w500),
               ),
             ),
           SizedBox(
             width: double.infinity,
-            height: 56,
+            height: 52,
             child: ElevatedButton(
               onPressed: (_isPurchasing || _selectedPackage == null) ? null : _purchase,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.amber,
                 foregroundColor: Colors.black,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 elevation: 4,
               ),
               child: Text(
                 widget.translations['start_free_trial'] ?? 'START FREE TRIAL',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           TextButton(
             onPressed: _isPurchasing ? null : _restorePurchases,
+            style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero),
             child: Text(
               widget.translations['restore_purchase'] ?? 'Restore Purchase',
-              style: const TextStyle(color: Colors.white60, fontSize: 12),
+              style: const TextStyle(color: Colors.white60, fontSize: 11),
             ),
-          ),
-          const SizedBox(height: 16),
-          // Apple Compliance: Subscription Disclosure
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              widget.translations['premium_disclosure'] ?? '',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white38, fontSize: 10, height: 1.4),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            widget.translations['premium_offer_footer'] ?? 'By continuing, you agree to our Terms and Privacy Policy.',
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white38, fontSize: 10),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildLink("Terms of Use", termsUrl),
-              const Text(" | ", style: TextStyle(color: Colors.white24)),
-              _buildLink("Privacy Policy", privacyUrl),
-            ],
           ),
         ],
       ),
@@ -458,15 +464,15 @@ class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
 
   Widget _buildFeatureRow(IconData icon, String text) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Icon(icon, color: Colors.amber, size: 20),
+          Icon(icon, color: Colors.amber, size: 18),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(color: Colors.white, fontSize: 15),
+              style: const TextStyle(color: Colors.white, fontSize: 14),
             ),
           ),
         ],
