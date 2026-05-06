@@ -1416,7 +1416,7 @@ void main() async {
     PurchasesConfiguration configuration = PurchasesConfiguration("goog_pYMPiDyqDdQmvwVWiKWoQLjpPUs");
     await Purchases.configure(configuration);
   } else if (Platform.isIOS) {
-    PurchasesConfiguration configuration = PurchasesConfiguration("appl_CJYQyunpGkkjmslYzujKgQQUISK");
+    PurchasesConfiguration configuration = PurchasesConfiguration("appl_CJYQyuNpGKkjmslYzujKgQQUISK");
     await Purchases.configure(configuration);
   }
 
