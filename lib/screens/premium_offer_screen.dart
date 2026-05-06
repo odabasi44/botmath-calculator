@@ -38,7 +38,7 @@ class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
   final FacebookAppEvents _facebookAppEvents = FacebookAppEvents();
 
   // URLs as per Apple Compliance
-  static const String privacyUrl = "https://www.lisansarsiv.com/gizlilik-politikalarimiz/";
+  static const String privacyUrl = "https://www.odabasi.com.tr/botmath-privacy/";
   static const String termsUrl = "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
 
   @override
@@ -72,14 +72,17 @@ class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
       } else {
         setState(() {
           _isLoading = false;
-          _errorMessage = "No subscription packages found. Please check your connection.";
+          _errorMessage = "No active offerings found in RevenueCat dashboard. (Check Products & Attachments)";
         });
       }
     } catch (e) {
       debugPrint("Error fetching offerings: $e");
+      String techError = e.toString();
+      if (techError.length > 100) techError = techError.substring(0, 100) + "...";
+      
       setState(() {
         _isLoading = false;
-        _errorMessage = "Unable to load packages. Please try again later.";
+        _errorMessage = "Unable to load packages.\n\nError: $techError";
       });
     }
   }
