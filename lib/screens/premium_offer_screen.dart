@@ -38,7 +38,7 @@ class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
   final FacebookAppEvents _facebookAppEvents = FacebookAppEvents();
 
   // URLs as per Apple Compliance
-  static const String privacyUrl = "https://www.odabasi.com.tr/botmath-privacy/";
+  static const String privacyUrl = "https://www.lisansarsivi.com/gizlilik-politikalarimiz/";
   static const String termsUrl = "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
 
   @override
