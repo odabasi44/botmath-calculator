@@ -378,10 +378,25 @@ class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
   }
 
   Widget _buildFooter() {
+    String trialText = "";
+    if (_selectedPackage != null) {
+      trialText = widget.translations['premium_offer_trial_info'] ?? '3 days free, then {0}. Cancel anytime.';
+      trialText = trialText.replaceAll('{0}', _selectedPackage!.storeProduct.priceString);
+    }
+
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
         children: [
+          if (_selectedPackage != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                trialText,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.amber, fontSize: 13, fontWeight: FontWeight.w500),
+              ),
+            ),
           SizedBox(
             width: double.infinity,
             height: 56,
@@ -407,7 +422,21 @@ class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
               style: const TextStyle(color: Colors.white60, fontSize: 12),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
+          // Apple Compliance: Subscription Disclosure
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              widget.translations['premium_disclosure'] ?? '',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white38, fontSize: 10, height: 1.4),
+            ),
+          ),
+          const SizedBox(height: 16),
           Text(
             widget.translations['premium_offer_footer'] ?? 'By continuing, you agree to our Terms and Privacy Policy.',
             textAlign: TextAlign.center,

@@ -184,6 +184,7 @@ class AppTranslations {
       'start_free_trial': 'ÜCRETSİZ DENEMEYİ BAŞLAT',
       'premium_offer_features_title': 'Neler Kazanırsınız?',
       'premium_offer_footer': 'Devam ederek Kullanım Koşulları ve Gizlilik Politikası\'nı kabul etmiş olursunuz.',
+      'premium_disclosure': 'Satın alma onayıyla birlikte ödeme Apple ID hesabınızdan tahsil edilecektir. Abonelik, mevcut dönemin bitiminden en az 24 saat önce iptal edilmediği sürece otomatik olarak yenilenir. Yenileme ücreti, mevcut dönemin bitiminden önceki 24 saat içinde hesabınızdan tahsil edilecektir. Satın alma işleminden sonra App Store\'daki hesap ayarlarınıza giderek aboneliklerinizi yönetebilir ve iptal edebilirsiniz.',
     },
     'EN': {
       'title': 'Calculator',
@@ -334,6 +335,7 @@ class AppTranslations {
       'start_free_trial': 'START FREE TRIAL',
       'premium_offer_features_title': 'What you get?',
       'premium_offer_footer': 'By continuing, you agree to our Terms and Privacy Policy.',
+      'premium_disclosure': 'Payment will be charged to your Apple ID account at the confirmation of purchase. Subscription automatically renews unless it is canceled at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period. You can manage and cancel your subscriptions by going to your account settings on the App Store after purchase.',
     },
     'ES': {
       'title': 'Calculadora',
@@ -484,6 +486,7 @@ class AppTranslations {
       'start_free_trial': 'INICIAR PRUEBA GRATUITA',
       'premium_offer_features_title': '¿Qué obtienes?',
       'premium_offer_footer': 'Al continuar, aceptas nuestros Términos y Política de Privacidad.',
+      'premium_disclosure': 'El pago se cargará a su cuenta de Apple ID al confirmar la compra. La suscripción se renueva automáticamente a menos que se cancele al menos 24 horas antes del final del período actual. Se le cobrará a su cuenta la renovación dentro de las 24 horas anteriores al final del período actual. Puede administrar y cancelar sus suscripciones yendo a la configuración de su cuenta en la App Store después de la compra.',
     },
     'DE': {
       'title': 'Rechner',
@@ -634,6 +637,7 @@ class AppTranslations {
       'start_free_trial': 'KOSTENLOSE TESTVERSION STARTEN',
       'premium_offer_features_title': 'Was du bekommst?',
       'premium_offer_footer': 'Durch Fortfahren stimmst du unseren Nutzungsbedingungen und Datenschutzbestimmungen zu.',
+      'premium_disclosure': 'Die Zahlung wird bei der Bestätigung des Kaufs Ihrem Apple-ID-Konto belastet. Das Abonnement verlängert sich automatisch, sofern es nicht mindestens 24 Stunden vor Ablauf des aktuellen Zeitraums gekündigt wird. Ihr Konto wird innerhalb von 24 Stunden vor Ablauf des aktuellen Zeitraums für die Verlängerung belastet. Sie können Ihre Abonnements verwalten und kündigen, indem Sie nach dem Kauf Ihre Kontoeinstellungen im App Store aufrufen.',
     },
     'AR': {
       'title': 'آلة حاسبة',
@@ -784,6 +788,7 @@ class AppTranslations {
       'start_free_trial': 'ابدأ التجربة المجانية',
       'premium_offer_features_title': 'ماذا ستحصل عليه؟',
       'premium_offer_footer': 'من خلال الاستمرار، فإنك توافق على شروط الاستخدام وسياسة الخصوصية الخاصة بنا.',
+      'premium_disclosure': 'سيتم فرض الدفع على حساب Apple ID الخاص بك عند تأكيد الشراء. يتجدد الاشتراك تلقائيًا ما لم يتم إلغاؤه قبل 24 ساعة على الأقل من نهاية الفترة الحالية. سيتم محاسبة حسابك على التجديد في غضون 24 ساعة قبل نهاية الفترة الحالية. يمكنك إدارة وإلغاء اشتراكاتك من خلال الانتقال إلى إعدادات حسابك في App Store بعد الشراء.',
     },
     'PT': {
       'title': 'Calculadora',
@@ -934,6 +939,7 @@ class AppTranslations {
       'start_free_trial': 'INICIAR TESTE GRÁTIS',
       'premium_offer_features_title': 'O que você ganha?',
       'premium_offer_footer': 'Ao continuar, você concorda com nossos Termos e Política de Privacidade.',
+      'premium_disclosure': 'O pagamento será debitado na sua conta Apple ID na confirmação da compra. A assinatura é renovada automaticamente, a menos que seja cancelada pelo menos 24 horas antes do final do período atual. A sua conta será cobrada pela renovação dentro de 24 horas antes do final do período atual. Pode gerir e cancelar as suas assinaturas acedendo às definições da sua conta na App Store após a compra.',
     },
     'FR': {
       'title': 'Calculatrice',
@@ -1084,6 +1090,7 @@ class AppTranslations {
       'start_free_trial': 'COMMENCER L\'ESSAI GRATUIT',
       'premium_offer_features_title': 'Ce que vous obtenez ?',
       'premium_offer_footer': 'En continuant, vous acceptez nos conditions d\'utilisation et notre politique de confidentialité.',
+      'premium_disclosure': 'Le paiement sera débité de votre compte Apple ID à la confirmation de l\'achat. L\'abonnement se renouvelle automatiquement sauf s\'il est annulé au moins 24 heures avant la fin de la période en cours. Votre compte sera facturé pour le renouvellement dans les 24 heures précédant la fin de la période en cours. Vous pouvez gérer et annuler vos abonnements en accédant aux paramètres de votre compte sur l\'App Store après l\'achat.',
     },
     'RU': {
       'title': 'Калькулятор',
