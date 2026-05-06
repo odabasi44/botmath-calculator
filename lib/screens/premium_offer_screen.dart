@@ -56,33 +56,64 @@ class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
       _errorMessage = null;
     });
 
+    String diagnosticLog = "";
+    
     try {
-      Offerings offerings = await Purchases.getOfferings();
-      if (offerings.current != null && offerings.current!.availablePackages.isNotEmpty) {
-        final packages = offerings.current!.availablePackages;
-        setState(() {
-          _availablePackages = packages;
-          // Default to monthly if available, else first one
-          _selectedPackage = packages.firstWhere(
-            (p) => p.packageType == PackageType.monthly,
-            orElse: () => packages.first,
-          );
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _isLoading = false;
-          _errorMessage = "No active offerings found in RevenueCat dashboard. (Check Products & Attachments)";
-        });
+      diagnosticLog += "1. Checking SDK Configuration...\n";
+      bool isConfigured = await Purchases.isConfigured;
+      if (!isConfigured) {
+        throw "SDK is NOT configured. Check your API Key.";
       }
-    } catch (e) {
-      debugPrint("Error fetching offerings: $e");
-      String techError = e.toString();
-      if (techError.length > 100) techError = techError.substring(0, 100) + "...";
       
+      diagnosticLog += "2. Fetching Customer Info...\n";
+      try {
+        await Purchases.getCustomerInfo();
+      } catch (e) {
+        diagnosticLog += "(!) Customer Info fetch failed (Internet issue?)\n";
+      }
+
+      diagnosticLog += "3. Fetching Offerings...\n";
+      Offerings offerings = await Purchases.getOfferings();
+      
+      if (offerings.current == null) {
+        if (offerings.all.isNotEmpty) {
+          throw "Offerings found, but NO 'Current' offering is set in RevenueCat Dashboard. Set one as 'Current'.";
+        } else {
+          throw "No Offerings found at all. Check Products and Offerings in RevenueCat.";
+        }
+      }
+
+      if (offerings.current!.availablePackages.isEmpty) {
+        throw "Offering '${offerings.current!.identifier}' has NO packages attached. Add products to this offering.";
+      }
+
+      setState(() {
+        _availablePackages = offerings.current!.availablePackages;
+        // Default to monthly if available, else first one
+        _selectedPackage = _availablePackages.firstWhere(
+          (p) => p.packageType == PackageType.monthly,
+          orElse: () => _availablePackages.first,
+        );
+        _isLoading = false;
+      });
+    } catch (e) {
+      String techError = e.toString();
+      String suggestion = "Please check your internet and try again.";
+      
+      if (techError.contains("11")) {
+        suggestion = "Apple Credentials Error. RevenueCat cannot reach Apple. Check your p8 keys and Issuer ID.";
+      } else if (techError.contains("Current")) {
+        suggestion = "Go to RevenueCat -> Offerings and mark one as 'Current'.";
+      } else if (techError.contains("No Offerings")) {
+        suggestion = "Ensure your products are 'Ready to Submit' and attached to an Offering.";
+      }
+
       setState(() {
         _isLoading = false;
-        _errorMessage = "[V44] Unable to load packages.\n\nError: $techError";
+        _errorMessage = "[V46 DIAGNOSTICS]\n\n"
+            "Status Log:\n$diagnosticLog\n"
+            "Critical Error: $techError\n\n"
+            "Solution: $suggestion";
       });
     }
   }
