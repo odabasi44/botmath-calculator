@@ -82,7 +82,7 @@ class _PremiumOfferScreenState extends State<PremiumOfferScreen> {
       
       setState(() {
         _isLoading = false;
-        _errorMessage = "Unable to load packages.\n\nError: $techError";
+        _errorMessage = "[V44] Unable to load packages.\n\nError: $techError";
       });
     }
   }
