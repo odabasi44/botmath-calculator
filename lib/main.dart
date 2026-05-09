@@ -2714,62 +2714,19 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   }
 
   void _showPremiumPurchase() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(translations['premium_purchase']!),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.diamond,
-                  size: 64,
-                  color: Colors.amber,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  translations['premium_desc']!,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 20),
-                Column(
-                  children: [
-                    _buildPremiumFeature(translations['ad_free']!),
-                    _buildPremiumFeature(translations['custom_themes']!),
-                    _buildPremiumFeature(translations['advanced_functions']!),
-                    _buildPremiumFeature(translations['unlimited_history']!),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(translations['cancel']!),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                try {
-                  await RevenueCatUI.presentPaywallIfNeeded("Premium");
-                } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Ödeme sayfası yüklenemedi: $e')),
-                    );
-                  }
-                }
-              },
-              child: Text(translations['purchase_premium']!),
-            ),
-          ],
-        );
-      },
+    final theme = CalculatorThemes.getTheme(_currentTheme);
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PremiumOfferScreen(
+          translations: translations,
+          theme: theme,
+          remoteConfig: widget.remoteConfig,
+          onContinue: () {
+            Navigator.of(context).pop();
+            _refreshPremiumStatus();
+          },
+        ),
+      ),
     );
   }
 
