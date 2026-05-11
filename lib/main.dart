@@ -2032,7 +2032,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     _bannerAd = BannerAd(
       adUnitId: Platform.isAndroid
           ? 'ca-app-pub-9358975861980527/9782610572'
-          : 'ca-app-pub-3940256099942544/2934735716',
+          : 'ca-app-pub-9358975861980527/2655526066',
       request: const AdRequest(),
       size: size,
       listener: BannerAdListener(
@@ -3247,7 +3247,7 @@ class _CommonBannerAdState extends State<CommonBannerAd> {
     _bannerAd = BannerAd(
       adUnitId: Platform.isAndroid
           ? 'ca-app-pub-9358975861980527/9782610572'
-          : 'ca-app-pub-3940256099942544/2934735716',
+          : 'ca-app-pub-9358975861980527/2655526066',
       request: const AdRequest(),
       size: size,
       listener: BannerAdListener(
