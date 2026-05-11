@@ -57,5 +57,29 @@
 		<string>ca-app-pub-9358975861980527~3254291864</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>FacebookAppID</key>
+		<string>1531033295022244</string>
+		<key>FacebookClientToken</key>
+		<string>640d83c4b5f4f163a0c37cc6657fd5a0</string>
+		<key>FacebookDisplayName</key>
+		<string>Scientific Calculator</string>
+		<key>FacebookAutoLogAppEventsEnabled</key>
+		<true/>
+		<key>FacebookAdvertiserIDCollectionEnabled</key>
+		<true/>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>fb1531033295022244</string>
+				</array>
+			</dict>
+		</array>
+		<key>LSApplicationQueriesSchemes</key>
+		<array>
+			<string>fbapi</string>
+			<string>fb-messenger-share-api</string>
+		</array>
 	</dict>
 </plist>
