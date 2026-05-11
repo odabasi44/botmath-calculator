@@ -1461,7 +1461,7 @@ void main() async {
   ));
   
   await remoteConfig.setDefaults({
-    "force_update_min_version": "1.0.25",
+    "force_update_min_version": "1.0.43+55",
   });
 
   try {
@@ -1583,7 +1583,9 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     _loadHistory();
     _loadTranslations();
     _setupPurchasesListener();
-    _initApp();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initApp();
+    });
     _syncFirestoreCredits();
   }
 
@@ -3221,7 +3223,9 @@ class _CommonBannerAdState extends State<CommonBannerAd> {
   void initState() {
     super.initState();
     if (!widget.isPremium) {
-      _loadAd();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadAd();
+      });
     }
   }
 
